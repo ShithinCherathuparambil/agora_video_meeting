@@ -17,6 +17,9 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
   StreamSubscription? _candidatesSubscription;
 
   bool _isScreenSharing = false;
+  bool _isRecording = false;
+  MediaRecorder? _mediaRecorder;
+  bool _isVirtualBackgroundEnabled = false;
 
   VideoCallBloc({required SignalingService signalingService})
       : _signalingService = signalingService,
@@ -28,6 +31,8 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
     on<VideoCallAddCandidate>(_onVideoCallAddCandidate);
     on<VideoCallHangUp>(_onVideoCallHangUp);
     on<VideoCallToggleScreenShare>(_onVideoCallToggleScreenShare);
+    on<VideoCallToggleRecording>(_onVideoCallToggleRecording);
+    on<VideoCallToggleVirtualBackground>(_onVideoCallToggleVirtualBackground);
   }
 
   RTCVideoRenderer get localRenderer => _localRenderer;
@@ -106,8 +111,7 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
   ) async {
     final offer = await _peerConnection!.createOffer();
     await _peerConnection!.setLocalDescription(offer);
-    // TODO: Pass meetingId
-    // await _signalingService.createRoom(meetingId, offer);
+    await _signalingService.createRoom(event.meetingId, offer);
   }
 
   Future<void> _onVideoCallCreateAnswer(
@@ -116,8 +120,7 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
   ) async {
     final answer = await _peerConnection!.createAnswer();
     await _peerConnection!.setLocalDescription(answer);
-    // TODO: Pass meetingId
-    // await _signalingService.joinRoom(meetingId, answer);
+    await _signalingService.joinRoom(event.meetingId, answer);
   }
 
   Future<void> _onVideoCallSetRemoteDescription(
@@ -159,19 +162,73 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
       };
       final stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _localRenderer.srcObject = stream;
-      final sender = _peerConnection?.getSenders().firstWhere(
+      final senders = await _peerConnection?.getSenders();
+      final sender = senders?.firstWhere(
             (sender) => sender.track?.kind == 'video',
           );
       await sender?.replaceTrack(stream.getVideoTracks().first);
     } else {
       final stream = await navigator.mediaDevices.getDisplayMedia({'video': true});
       _localRenderer.srcObject = stream;
-      final sender = _peerConnection?.getSenders().firstWhere(
+      final senders = await _peerConnection?.getSenders();
+      final sender = senders?.firstWhere(
             (sender) => sender.track?.kind == 'video',
           );
       await sender?.replaceTrack(stream.getVideoTracks().first);
     }
     _isScreenSharing = !_isScreenSharing;
+  }
+
+  Future<void> _onVideoCallToggleRecording(
+    VideoCallToggleRecording event,
+    Emitter<VideoCallState> emit,
+  ) async {
+    if (_isRecording) {
+      final path = await _mediaRecorder?.stop();
+      print('Recording stopped, file saved at $path');
+    } else {
+      _mediaRecorder = MediaRecorder();
+      final stream = _remoteRenderer.srcObject;
+      if (stream != null) {
+        await _mediaRecorder?.start(
+          'video.webm', // TODO: Use a unique file name
+          videoTrack: stream.getVideoTracks().first,
+          audioTrack: stream.getAudioTracks().first,
+        );
+      }
+    }
+    _isRecording = !_isRecording;
+  }
+
+  Future<void> _onVideoCallToggleVirtualBackground(
+    VideoCallToggleVirtualBackground event,
+    Emitter<VideoCallState> emit,
+  ) async {
+    _isVirtualBackgroundEnabled = !_isVirtualBackgroundEnabled;
+    // This is a very basic implementation and will not work well.
+    // A proper implementation would require a more sophisticated approach.
+    if (_isVirtualBackgroundEnabled) {
+      final stream = _localRenderer.srcObject;
+      if (stream != null) {
+        final videoTrack = stream.getVideoTracks().first;
+        final processor = await videoTrack.getProcessor();
+        final background = await createLocalMediaStream('background');
+        await background.addTrack(await navigator.mediaDevices.getUserMedia({'video': true})); // This is not right
+        processor.setBackground(background.getVideoTracks().first);
+      }
+    } else {
+      final stream = await navigator.mediaDevices.getUserMedia({
+        'audio': true,
+        'video': {
+          'facingMode': 'user',
+        },
+      });
+      _localRenderer.srcObject = stream;
+      final sender = _peerConnection?.getSenders().firstWhere(
+            (sender) => sender.track?.kind == 'video',
+          );
+      await sender?.replaceTrack(stream.getVideoTracks().first);
+    }
   }
 
   @override

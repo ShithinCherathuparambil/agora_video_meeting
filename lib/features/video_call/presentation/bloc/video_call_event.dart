@@ -20,9 +20,23 @@ class VideoCallInitialize extends VideoCallEvent {
   List<Object> get props => [meetingId, userId];
 }
 
-class VideoCallCreateOffer extends VideoCallEvent {}
+class VideoCallCreateOffer extends VideoCallEvent {
+  final String meetingId;
 
-class VideoCallCreateAnswer extends VideoCallEvent {}
+  const VideoCallCreateOffer({required this.meetingId});
+
+  @override
+  List<Object> get props => [meetingId];
+}
+
+class VideoCallCreateAnswer extends VideoCallEvent {
+  final String meetingId;
+
+  const VideoCallCreateAnswer({required this.meetingId});
+
+  @override
+  List<Object> get props => [meetingId];
+}
 
 class VideoCallSetRemoteDescription extends VideoCallEvent {
   final RTCSessionDescription description;
@@ -47,3 +61,5 @@ class VideoCallHangUp extends VideoCallEvent {}
 class VideoCallToggleScreenShare extends VideoCallEvent {}
 
 class VideoCallToggleRecording extends VideoCallEvent {}
+
+class VideoCallToggleVirtualBackground extends VideoCallEvent {}

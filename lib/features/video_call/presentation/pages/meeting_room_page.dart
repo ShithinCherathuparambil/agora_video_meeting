@@ -24,8 +24,12 @@ class MeetingRoomPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => VideoCallBloc(signalingService: context.read())
-            ..add(VideoCallInitialize(meetingId: meetingId, userId: '')), // TODO: Get user ID
+      create: (context) {
+        final authState = context.read<AuthBloc>().state;
+        final userId = authState.status == AuthStatus.authenticated ? authState.user!.uid : '';
+        return VideoCallBloc(signalingService: context.read())
+          ..add(VideoCallInitialize(meetingId: meetingId, userId: userId));
+      },
         ),
         BlocProvider(
           create: (context) => ChatBloc(chatRepository: context.read())..startListening(meetingId),
@@ -50,7 +54,7 @@ class MeetingRoomView extends StatelessWidget {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (_) => const ChatView(),
+                builder: (_) => ChatView(meetingId: meetingId),
               );
             },
           ),
@@ -64,6 +68,12 @@ class MeetingRoomView extends StatelessWidget {
             icon: const Icon(Icons.fiber_manual_record),
             onPressed: () {
               context.read<VideoCallBloc>().add(VideoCallToggleRecording());
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.wallpaper),
+            onPressed: () {
+              context.read<VideoCallBloc>().add(VideoCallToggleVirtualBackground());
             },
           ),
           IconButton(

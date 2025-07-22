@@ -27,8 +27,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   }
 
   void _onChatMessageSent(ChatMessageSent event, Emitter<ChatState> emit) {
-    // TODO: Get user ID and meeting ID
-    _chatRepository.sendMessage('', '', event.message);
+    _chatRepository.sendMessage(event.meetingId, event.senderId, event.message);
   }
 
   void _onChatMessagesReceived(

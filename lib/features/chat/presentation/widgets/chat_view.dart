@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gooteam_stream/features/chat/presentation/bloc/chat_bloc.dart';
 
 class ChatView extends StatelessWidget {
-  const ChatView({super.key});
+  final String meetingId;
+
+  const ChatView({super.key, required this.meetingId});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,12 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
-      context.read<ChatBloc>().add(ChatMessageSent(message: _controller.text));
+      final senderId = context.read<AuthBloc>().state.user!.uid;
+      context.read<ChatBloc>().add(ChatMessageSent(
+            meetingId: widget.meetingId,
+            senderId: senderId,
+            message: _controller.text,
+          ));
       _controller.clear();
     }
   }
