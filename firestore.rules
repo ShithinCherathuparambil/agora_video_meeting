@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isMeetingParticipant(meetingId) {
+      return request.auth.uid in get(/databases/$(database)/documents/meetings/$(meetingId)).data.participantIds;
+    }
+
+    function isMeetingHost(meetingId) {
+      return get(/databases/$(database)/documents/meetings/$(meetingId)).data.hostId == request.auth.uid;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      allow read: if isAuthenticated(); // Allow reading other users for meeting participants
+    }
+    
+    // Meetings collection
+    match /meetings/{meetingId} {
+      allow create: if isAuthenticated() &&
+                   request.auth.uid == resource.data.hostId;
+
+      allow read: if isAuthenticated() &&
+                 (request.auth.uid == resource.data.hostId ||
+                  request.auth.uid in resource.data.participantIds);
+
+      allow update: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.hostId ||
+                    // Participants can update limited fields
+                    (request.auth.uid in resource.data.participantIds &&
+                     request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['participantIds'])));
+
+      allow delete: if isAuthenticated() &&
+                   request.auth.uid == resource.data.hostId;
+    }
+      
+
+    // Participants collection
+    match /participants/{participantId} {
+      allow create: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.userId ||
+                    isMeetingHost(resource.data.meetingId));
+
+      allow read: if isAuthenticated() &&
+                 isMeetingParticipant(resource.data.meetingId);
+
+      allow update: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.userId ||
+                    isMeetingHost(resource.data.meetingId));
+
+      allow delete: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.userId ||
+                    isMeetingHost(resource.data.meetingId));
+    }
+      
+
+    // Chat messages collection
+    match /chat_messages/{messageId} {
+      allow create: if isAuthenticated() &&
+                   request.auth.uid == resource.data.senderId &&
+                   isMeetingParticipant(resource.data.meetingId);
+
+      allow read: if isAuthenticated() &&
+                 isMeetingParticipant(resource.data.meetingId);
+
+      allow update: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.senderId ||
+                    isMeetingHost(resource.data.meetingId)) &&
+                   // Only allow updating specific fields
+                   request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['content', 'editedAt', 'status']);
+
+      allow delete: if isAuthenticated() &&
+                   (request.auth.uid == resource.data.senderId ||
+                    isMeetingHost(resource.data.meetingId));
+    }
+
+    // WebRTC signaling collection (for peer-to-peer connections)
+    match /signaling/{meetingId}/offers/{offerId} {
+      allow create, read, update, delete: if isAuthenticated() &&
+                                         isMeetingParticipant(meetingId);
+    }
+
+    match /signaling/{meetingId}/answers/{answerId} {
+      allow create, read, update, delete: if isAuthenticated() &&
+                                         isMeetingParticipant(meetingId);
+    }
+
+    match /signaling/{meetingId}/ice_candidates/{candidateId} {
+      allow create, read, update, delete: if isAuthenticated() &&
+                                         isMeetingParticipant(meetingId);
+    }
+    
+
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

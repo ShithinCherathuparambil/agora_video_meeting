@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "952032975161",
+    "project_id": "goo-team",
+    "storage_bucket": "goo-team.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:952032975161:android:78071788c24969f9aef0e8",
+        "android_client_info": {
+          "package_name": "com.gooteam.stream"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAg7SqtKBKDwNqLvN9edxcsfovGwHp9DLM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
