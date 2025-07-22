@@ -138,9 +138,9 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
   }
 
   Future<void> _onVideoCallHangUp(
-    VideoCallHangUp event,
-    Emitter<VideoCallState> emit,
-  ) async {
+    VideoCallHangUp event, {
+    required Emitter<VideoCallState> emit,
+  }) async {
     await _localRenderer.dispose();
     await _remoteRenderer.dispose();
     await _peerConnection?.close();
@@ -224,7 +224,8 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
         },
       });
       _localRenderer.srcObject = stream;
-      final sender = _peerConnection?.getSenders().firstWhere(
+      final senders = await _peerConnection?.getSenders();
+      final sender = senders?.firstWhere(
             (sender) => sender.track?.kind == 'video',
           );
       await sender?.replaceTrack(stream.getVideoTracks().first);
@@ -233,7 +234,7 @@ class VideoCallBloc extends Bloc<VideoCallEvent, VideoCallState> {
 
   @override
   Future<void> close() {
-    _onVideoCallHangUp(VideoCallHangUp(), emit);
+    _onVideoCallHangUp(VideoCallHangUp(), emit: emit);
     return super.close();
   }
 }
