@@ -1,75 +1,24 @@
-import 'package:equatable/equatable.dart';
-import '../../domain/entities/user_entity.dart';
+part of 'auth_bloc.dart';
 
-abstract class AuthState extends Equatable {
-  const AuthState();
+enum AuthStatus { unknown, authenticated, unauthenticated }
 
-  @override
-  List<Object?> get props => [];
-}
+class AuthState extends Equatable {
+  final AuthStatus status;
+  final User? user;
 
-class AuthInitial extends AuthState {}
+  const AuthState._({
+    this.status = AuthStatus.unknown,
+    this.user,
+  });
 
-class AuthLoading extends AuthState {}
+  const AuthState.unknown() : this._();
 
-class AuthAuthenticated extends AuthState {
-  final UserEntity user;
+  const AuthState.authenticated(User user)
+      : this._(status: AuthStatus.authenticated, user: user);
 
-  const AuthAuthenticated(this.user);
-
-  @override
-  List<Object> get props => [user];
-}
-
-class AuthUnauthenticated extends AuthState {}
-
-class AuthError extends AuthState {
-  final String message;
-
-  const AuthError(this.message);
+  const AuthState.unauthenticated()
+      : this._(status: AuthStatus.unauthenticated);
 
   @override
-  List<Object> get props => [message];
-}
-
-// Sign In States
-class SignInLoading extends AuthState {}
-
-class SignInSuccess extends AuthState {
-  final UserEntity user;
-
-  const SignInSuccess(this.user);
-
-  @override
-  List<Object> get props => [user];
-}
-
-class SignInError extends AuthState {
-  final String message;
-
-  const SignInError(this.message);
-
-  @override
-  List<Object> get props => [message];
-}
-
-// Sign Up States
-class SignUpLoading extends AuthState {}
-
-class SignUpSuccess extends AuthState {
-  final UserEntity user;
-
-  const SignUpSuccess(this.user);
-
-  @override
-  List<Object> get props => [user];
-}
-
-class SignUpError extends AuthState {
-  final String message;
-
-  const SignUpError(this.message);
-
-  @override
-  List<Object> get props => [message];
+  List<Object?> get props => [status, user];
 }

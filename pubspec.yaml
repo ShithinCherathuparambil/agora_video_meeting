@@ -15,32 +15,30 @@ dependencies:
   equatable: ^2.0.5
 
   # WebRTC for video/audio streaming
-  flutter_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc.git
+  flutter_webrtc: ^0.9.22
 
   # Firebase services
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.3
-  firebase_storage: ^12.3.2
-  google_sign_in: ^6.2.1
+  firebase_core: ^2.15.0
+  firebase_auth: ^4.7.2
+  cloud_firestore: ^4.8.4
+  firebase_storage: ^11.2.5
+  google_sign_in: ^6.1.4
 
   # UI and Navigation
-  go_router: ^14.6.1
-  flutter_svg: ^2.0.10+1
-  cached_network_image: ^3.4.1
+  go_router: ^10.0.0
+  flutter_svg: ^2.0.7
+  cached_network_image: ^3.2.3
 
   # Utilities
-  uuid: ^4.5.1
-  permission_handler: ^11.3.1
-  path_provider: ^2.1.4
-  intl: ^0.19.0
+  uuid: ^3.0.7
+  permission_handler: ^10.4.3
+  path_provider: ^2.1.0
+  intl: ^0.18.1
   dartz: ^0.10.1
-  get_it: ^8.0.2
+  get_it: ^7.6.0
 
   # Development and debugging
-  logger: ^2.4.0
+  logger: ^2.0.2
 
 dev_dependencies:
   flutter_test:
