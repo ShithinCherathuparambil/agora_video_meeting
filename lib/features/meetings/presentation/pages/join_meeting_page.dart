@@ -233,10 +233,7 @@ class _JoinMeetingPageState extends State<JoinMeetingPage> {
                       child: CustomButton(
                         text: 'Create Meeting',
                         onPressed: () {
-                          // TODO: Navigate to create meeting
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Create Meeting - Coming Soon!')),
-                          );
+                          context.go('/create-meeting');
                         },
                         isOutlined: true,
                       ),

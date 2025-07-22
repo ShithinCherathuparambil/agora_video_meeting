@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/meetings/presentation/pages/create_meeting_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
@@ -61,8 +62,7 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.createMeeting,
         name: 'create-meeting',
-        builder: (context, state) =>
-            const Placeholder(), // Will be replaced with CreateMeetingScreen
+        builder: (context, state) => const CreateMeetingPage(),
       ),
 
       GoRoute(
